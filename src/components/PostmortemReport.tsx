@@ -267,6 +267,42 @@ export default function PostmortemReport({ data, timeWindow = "Last 5 hours", qu
         })()
       )}
       
+      {rawMetrics && rawMetrics.length > 0 && (
+        (() => {
+          const tempoMetric = rawMetrics.find((m: any) => m.source === 'Tempo' && m.data && m.data.length > 0);
+          if (!tempoMetric) return null;
+          
+          return (
+            <div className="mt-6 border border-slate-200 rounded-2xl bg-white p-6 shadow-sm overflow-hidden">
+              <div className="mb-6 flex items-center justify-between">
+                <div className="text-sm font-black uppercase tracking-[.15em] text-slate-700">Raw Trace Spans</div>
+                <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">{tempoMetric.query}</div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead className="border-b border-slate-200 text-xs font-black uppercase tracking-[.1em] text-slate-400">
+                    <tr>
+                      <th className="pb-3 pr-4">Trace ID</th>
+                      <th className="pb-3 pr-4">Start Time</th>
+                      <th className="pb-3 pr-4">Duration (ms)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {tempoMetric.data.map((trace: any, i: number) => (
+                      <tr key={i} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3 pr-4 font-mono text-xs text-blue-600">{trace.traceID || '-'}</td>
+                        <td className="py-3 pr-4">{trace.startTimeUnixNano ? new Date(parseInt(trace.startTimeUnixNano) / 1000000).toLocaleTimeString() : '-'}</td>
+                        <td className="py-3 pr-4">{trace.durationMs || '-'} ms</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()
+      )}
+      
       {queries && queries.length > 0 && (
         <details className="mt-6 group border border-slate-200 rounded-2xl overflow-hidden bg-white">
           <summary className="flex cursor-pointer items-center justify-between bg-slate-50 px-6 py-4 text-sm font-black uppercase tracking-[.15em] text-slate-700 hover:bg-slate-100 transition-colors">
