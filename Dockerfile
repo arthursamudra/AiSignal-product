@@ -18,6 +18,9 @@ COPY . .
 # Next.js telemetry is disabled
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Provide a dummy key so Next.js static analysis doesn't crash during build
+ENV OPENAI_API_KEY="dummy_key_for_build_only"
+
 RUN npm run build
 
 # Production image, copy all the files and run next
