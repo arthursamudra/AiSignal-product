@@ -1,0 +1,39 @@
+{
+  "id": "RPT-1784006524672",
+  "createdAt": "2026-07-14T05:22:04.672Z",
+  "data": {
+    "service": "payment-api",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The payment-api experienced high memory usage and a subsequent increase in error rates due to external API latency spikes that resulted in the exhaustion of the connection pool.",
+    "rootCause": {
+      "title": "External API Latency Spike",
+      "description": "Repeated occurrences of GatewayException indicate that the payment-api faced external API latency spikes, leading to exhaustion of the connection pool, which resulted in increased error rates."
+    },
+    "evidenceChain": [
+      "High memory usage detected at 78.13%.",
+      "Error rate temporarily increased to 7.48%.",
+      "Loki logs reveal repeated 'GatewayException in payment-api: External API latency spike detected. Connection pool exhausted.' messages."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:52",
+        "event": "GatewayException in payment-api: External API latency spike detected. Connection pool exhausted."
+      },
+      {
+        "time": "Oct 12, 13:51",
+        "event": "GatewayException in payment-api: External API latency spike detected. Connection pool exhausted."
+      },
+      {
+        "time": "Oct 12, 13:50",
+        "event": "GatewayException in payment-api: External API latency spike detected. Connection pool exhausted."
+      }
+    ],
+    "impact": "Users experienced higher error rates and potential delays in transactions due to the service being unable to handle incoming requests efficiently.",
+    "recommendedActions": [
+      "Investigate and optimize the performance of the external APIs to reduce latency spikes.",
+      "Review and increase the capacity of the connection pool to handle spikes more effectively.",
+      "Implement monitoring for connection pool exhaustion to alert on similar issues proactively."
+    ]
+  }
+}

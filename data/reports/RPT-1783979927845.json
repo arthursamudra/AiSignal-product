@@ -1,0 +1,40 @@
+{
+  "id": "RPT-1783979927845",
+  "createdAt": "2026-07-13T21:58:47.845Z",
+  "data": {
+    "service": "qa-login",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The incident was caused by Redis connection timeouts leading to high error rates on the qa-login service. Despite moderate CPU usage and acceptable memory, the session store retrieval failure in Redis led to widespread login issues.",
+    "rootCause": {
+      "title": "Redis Connection Timeout",
+      "description": "The qa-login service encountered multiple 'LoginException' errors due to session store retrieval failures because of Redis connection timeout after 5000ms."
+    },
+    "evidenceChain": [
+      "Detected multiple 'LoginException' entries in Loki logs for qa-login service.",
+      "HTTP request duration metrics indicate elevated request durations and errors.",
+      "The historical incident KAN-6 involved similar Redis connection timeouts."
+    ],
+    "timeline": [
+      {
+        "time": "Nov 1, 13:41",
+        "event": "LoginException logged in qa-login: Session store retrieval failure. Redis connection timeout after 5000ms."
+      },
+      {
+        "time": "Nov 1, 13:40",
+        "event": "LoginException logged in qa-login: Session store retrieval failure. Redis connection timeout after 5000ms."
+      }
+    ],
+    "impact": "Users faced login failures due to inability to successfully retrieve sessions, leading to a high error rate of 31.85%.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Restart the Redis instance similar to the resolution in incident KAN-6 to resolve orphaned connections.",
+      "Implement monitoring and alerts for Redis connection latency to preemptively identify future issues.",
+      "Conduct a detailed review of Redis configurations to ensure optimal connection handling and reduce timeout occurrences."
+    ]
+  }
+}

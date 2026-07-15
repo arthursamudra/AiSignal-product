@@ -1,0 +1,28 @@
+{
+  "id": "RPT-1784069589612",
+  "createdAt": "2026-07-14T22:53:09.612Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Critical",
+    "confidence": "100%",
+    "executiveSummary": "The frontend-web service experienced a significant performance degradation due to an N+1 query issue, negatively impacting the p95 latency.",
+    "rootCause": {
+      "title": "N+1 Query Problem",
+      "description": "The traces reveal an N+1 query issue where multiple sequential SELECT statements on the users_cart table were executed within a single GET /api/checkout request, causing latency degradation."
+    },
+    "evidenceChain": [
+      "Latency degradation was traced to an N+1 query problem via multiple sequential SELECT * FROM users_cart statements in a single request.",
+      "The p95 latency for the frontend-web service was increased due to this repetitive querying pattern."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 18, 14:37",
+        "event": "Traces detected multiple SELECT * FROM users_cart statements within the GET /api/checkout endpoint execution."
+      }
+    ],
+    "impact": "Users experienced slow response times during the checkout process, as the service took longer than expected to complete requests due to inefficient database querying.",
+    "recommendedActions": [
+      "Implement eager loading for related data to avoid the N+1 query pattern in the GET /api/checkout endpoint."
+    ]
+  }
+}

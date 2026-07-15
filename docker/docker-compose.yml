@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./config/rules.yml:/etc/prometheus/rules.yml
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --enable-feature=otlp-write-receiver
+      - --web.enable-lifecycle
+    depends_on:
+      - alertmanager
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --log.level=debug
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"   # tempo
+      - "4317:4317"  # otlp grpc
+      - "4318:4318"  # otlp http
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./config/otel-collector.yml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - "4317" # OTLP gRPC receiver
+      - "4318" # OTLP HTTP receiver
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  mock-qa-login:
+    build:
+      context: ./mocks
+      dockerfile: Dockerfile
+    environment:
+      - SERVICE_NAME=qa-login
+      - ERROR_RATE=0.3
+      - LATENCY_MAX=500
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    depends_on:
+      - otel-collector
+
+  mock-payment-api:
+    build:
+      context: ./mocks
+      dockerfile: Dockerfile
+    environment:
+      - SERVICE_NAME=payment-api
+      - ERROR_RATE=0.05
+      - LATENCY_MAX=1500
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    depends_on:
+      - otel-collector
+
+  mock-order-worker:
+    build:
+      context: ./mocks
+      dockerfile: Dockerfile
+    environment:
+      - SERVICE_NAME=order-worker
+      - ERROR_RATE=0.1
+      - LATENCY_MAX=300
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+    depends_on:
+      - otel-collector
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/incident.json
+    depends_on:
+      - prometheus
+      - loki
+      
+  mock-frontend-web:
+    build:
+      context: ./mocks
+      dockerfile: Dockerfile
+    environment:
+      - SERVICE_NAME=frontend-web
+      - ERROR_RATE=0.01
+      - LATENCY_MAX=100
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+    depends_on:
+      - otel-collector

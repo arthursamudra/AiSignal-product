@@ -1,0 +1,35 @@
+{
+  "id": "RPT-1783938914145",
+  "createdAt": "2026-07-13T10:35:14.145Z",
+  "data": {
+    "service": "qa-login",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The qa-login service experienced significant failures due to redis connection timeouts, impacting user login sessions.",
+    "rootCause": {
+      "title": "Redis Connection Timeout",
+      "description": "The qa-login service encountered repeated exceptions related to Redis connection timeouts. This prevented successful retrieval of session data, resulting in login failures."
+    },
+    "evidenceChain": [
+      "Error logs show repeated instances of 'Session store retrieval failure. Redis connection timeout after 5000ms.'",
+      "Prometheus metrics indicate a high error rate of 27.89% for HTTP 500 statuses in the qa-login service."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:42",
+        "event": "LoginException in qa-login: Session store retrieval failure. Redis connection timeout after 5000ms."
+      }
+    ],
+    "impact": "Users were unable to log in as expected due to session retrieval failures, resulting in a high error rate and potential service downtime.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Restart the Redis instance to clear any orphaned connections, as resolved in similar incident KAN-6.",
+      "Implement monitoring and alerting on Redis connection pool usage to prevent future timeouts.",
+      "Investigate Redis configuration and client settings to ensure efficient connection management."
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "RPT-1784069130098",
+  "createdAt": "2026-07-14T22:45:30.098Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The frontend-web service experienced significant latency issues due to high CPU usage, impacting the /api/checkout endpoint with consistent traces showing notable latency. No database N+1 query patterns were identified.",
+    "rootCause": {
+      "title": "High CPU Usage",
+      "description": "The root cause of the degradation in service performance was high CPU usage at 99.67%. This significantly affected the processing time, leading to increased latency across trace requests, specifically impacting GET /api/checkout."
+    },
+    "evidenceChain": [
+      "Latency p95 observed at 4500 ms for GET /api/checkout consistently.",
+      "CPU usage at 99.67% without error rate contributions, impacting processing speed."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:42",
+        "event": "Trace for GET /api/checkout started with 4500 ms duration."
+      },
+      {
+        "time": "Oct 12, 13:43",
+        "event": "Trace for GET /api/checkout started with 4500 ms duration."
+      },
+      {
+        "time": "Oct 12, 13:44",
+        "event": "Trace for GET /api/checkout started with 4500 ms duration."
+      }
+    ],
+    "impact": "All users utilizing the /api/checkout endpoint experienced increased latency, leading to slower checkout times.",
+    "recommendedActions": [
+      "Investigate and resolve CPU usage bottleneck in the frontend-web service.",
+      "Optimize code or redistributive load to decrease CPU consumption."
+    ]
+  }
+}

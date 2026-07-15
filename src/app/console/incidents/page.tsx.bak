@@ -1,0 +1,96 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { TriangleAlert, Activity } from "lucide-react";
+
+type ServiceMetric = {
+  serviceName: string;
+  errorRate: number;
+  totalRequests: number;
+};
+
+export default function IncidentsPage() {
+  const [metrics, setMetrics] = useState<ServiceMetric[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        // Fetch 500s
+        const res500 = await axios.get('/api/observability/prometheus?query=sum by (service_name) (rate(http_request_duration_seconds_count{status="500"}[5m]))');
+        // Fetch total
+        const resTotal = await axios.get('/api/observability/prometheus?query=sum by (service_name) (rate(http_request_duration_seconds_count[5m]))');
+        
+        const errors = res500.data.data.result;
+        const totals = resTotal.data.data.result;
+
+        const merged: ServiceMetric[] = totals.map((t: any) => {
+          const serviceName = t.metric.service_name;
+          const errorMatch = errors.find((e: any) => e.metric.service_name === serviceName);
+          const errorCount = errorMatch ? parseFloat(errorMatch.value[1]) : 0;
+          const totalCount = parseFloat(t.value[1]);
+          const errorRate = totalCount > 0 ? (errorCount / totalCount) * 100 : 0;
+          return { serviceName, errorRate, totalRequests: totalCount };
+        }).sort((a: ServiceMetric, b: ServiceMetric) => b.errorRate - a.errorRate); // Sort by highest error rate
+
+        setMetrics(merged);
+      } catch (e) {
+        console.error("Failed to fetch Prometheus metrics", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div>
+      <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <div>
+          <div className="mb-3 text-xs font-black uppercase tracking-[.22em] text-blue-600">Active Incidents</div>
+          <h3 className="text-xl font-black tracking-[-.035em] sm:text-3xl text-slate-950">Services Requiring Attention</h3>
+          <p className="mt-3 max-w-2xl text-slate-600">Live telemetry fetched from Prometheus indicating real-time error rates.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6">
+        {loading ? (
+          <div className="animate-pulse flex items-center gap-3"><Activity className="w-5 h-5 text-blue-500" /> Fetching live telemetry...</div>
+        ) : metrics.length === 0 ? (
+          <div className="text-slate-500 font-semibold">No telemetry data found. Is Docker running?</div>
+        ) : (
+          metrics.map((m) => (
+            <div key={m.serviceName} className="block w-full text-left transition bg-white shadow-sm rounded-2xl px-5 py-5 border border-slate-200 hover:border-blue-300">
+               <div className="flex items-center justify-between">
+                 <div>
+                   <div className="text-xl font-black tracking-tight text-slate-950 flex items-center gap-2">
+                     {m.serviceName} 
+                     <span className={`h-2 w-2 rounded-full ${m.errorRate > 15 ? 'bg-red-600' : m.errorRate > 5 ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+                   </div>
+                 </div>
+                 {m.errorRate > 15 && <span className="text-xs font-black tracking-[.16em] text-red-600 flex items-center gap-1"><TriangleAlert className="w-3 h-3"/> CRITICAL</span>}
+                 {m.errorRate > 5 && m.errorRate <= 15 && <span className="text-xs font-black tracking-[.16em] text-amber-600">WARNING</span>}
+                 {m.errorRate <= 5 && <span className="text-xs font-black tracking-[.16em] text-emerald-600">HEALTHY</span>}
+               </div>
+               
+               <div className="mt-3 text-sm text-slate-600">
+                 <strong>Error Rate:</strong> {m.errorRate.toFixed(2)}% | <strong>Throughput:</strong> {m.totalRequests.toFixed(2)} req/s
+               </div>
+
+               <div className="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-500 ${m.errorRate > 15 ? 'bg-red-500' : m.errorRate > 5 ? 'bg-amber-500' : 'bg-emerald-500'}`} 
+                    style={{width: `${Math.min(m.errorRate, 100)}%`}}
+                  ></div>
+               </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,22 @@
+{
+  "id": "RPT-1784068410635",
+  "createdAt": "2026-07-14T22:33:30.635Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "A critical incident was identified in the frontend-web service due to heightened CPU usage leading to potential performance degradation. The issue is compounded by increased latency, as captured in the tracing data.",
+    "rootCause": {
+      "title": "High CPU Usage",
+      "description": "The frontend-web service exhibited exceptionally high CPU usage at 95.92%, which is likely the primary cause of the observed performance issues and latency increase in the system."
+    },
+    "evidenceChain": [],
+    "timeline": [],
+    "impact": "The high CPU usage on the frontend-web service resulted in performance degradation, as observed through the increased latency (p95 of 4.9 seconds) while the error rate remained at 0.00%. This could lead to a poorer user experience due to longer page load times.",
+    "recommendedActions": [
+      "Investigate and optimize the code or process causing high CPU consumption in the frontend-web service.",
+      "Implement scaling strategies to better handle CPU-intensive workloads to prevent future incidents.",
+      "Monitor CPU usage trends to identify potential issues early and apply resource limits or alerts accordingly."
+    ]
+  }
+}

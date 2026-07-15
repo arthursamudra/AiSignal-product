@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 5s
+
+rule_files:
+  - "rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+scrape_configs:
+  - job_name: 'mock-qa-login'
+    static_configs:
+      - targets: ['mock-qa-login:8080']
+  - job_name: 'mock-payment-api'
+    static_configs:
+      - targets: ['mock-payment-api:8080']
+  - job_name: 'mock-order-worker'
+    static_configs:
+      - targets: ['mock-order-worker:8080']
+  - job_name: 'mock-frontend-web'
+    static_configs:
+      - targets: ['mock-frontend-web:8080']

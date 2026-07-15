@@ -1,0 +1,335 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { TriangleAlert, FileSearch, Layers, Loader2, Zap } from 'lucide-react';
+import PostmortemReport, { PostmortemData } from '@/components/PostmortemReport';
+
+type ServiceMetric = {
+  serviceName: string;
+  errorRate: number;
+  totalRequests: number;
+};
+
+export default function AnalysisPage() {
+  const [metrics, setMetrics] = useState<ServiceMetric[]>([]);
+  const [selectedService, setSelectedService] = useState<string>("qa-login");
+  const [timeRange, setTimeRange] = useState<string>("Last 30 min");
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [postmortemData, setPostmortemData] = useState<PostmortemData | null>(null);
+  const [planData, setPlanData] = useState<any>(null);
+
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPreview = async () => {
+      setIsPreviewLoading(true);
+      setPreviewData(null);
+      try {
+        const res = await fetch('/api/ai/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ service: selectedService, timeRange })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setPreviewData(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch preview", err);
+      } finally {
+        setIsPreviewLoading(false);
+      }
+    };
+    if (selectedService) {
+      fetchPreview();
+    }
+  }, [selectedService, timeRange]);
+
+  const fetchMetrics = async () => {
+    try {
+      let interval = "30m";
+      if (timeRange === "Last 1 hour") interval = "1h";
+      if (timeRange === "Last 5 hours") interval = "5h";
+
+      const res500 = await axios.get(`/api/observability/prometheus?query=sum by (service_name) (rate(http_request_duration_seconds_count{status="500"}[${interval}]))`);
+      const resTotal = await axios.get(`/api/observability/prometheus?query=sum by (service_name) (rate(http_request_duration_seconds_count[${interval}]))`);
+      
+      const errors = res500.data.data.result;
+      const totals = resTotal.data.data.result;
+
+      const merged: ServiceMetric[] = totals.map((t: any) => {
+        const serviceName = t.metric.service_name;
+        const errorMatch = errors.find((e: any) => e.metric.service_name === serviceName);
+        const errorCount = errorMatch ? parseFloat(errorMatch.value[1]) : 0;
+        const totalCount = parseFloat(t.value[1]);
+        const errorRate = totalCount > 0 ? (errorCount / totalCount) * 100 : 0;
+        return { serviceName, errorRate, totalRequests: totalCount };
+      }).sort((a: ServiceMetric, b: ServiceMetric) => b.errorRate - a.errorRate);
+
+      setMetrics(merged);
+      if (merged.length > 0 && !selectedService) {
+        setSelectedService(merged[0].serviceName);
+      }
+    } catch (e) {
+      console.error("Failed to fetch Prometheus metrics", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleGenerate = async () => {
+    const serviceMetric = metrics.find(m => m.serviceName === selectedService);
+    const errorRateStr = serviceMetric ? serviceMetric.errorRate.toFixed(2) : "unknown";
+
+    setIsLoading(true);
+    setError(null);
+    setPostmortemData(null);
+    setPlanData(null);
+
+    try {
+      // 1. Generate Query Plan
+      const planRes = await fetch('/api/ai/planner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          messages: [{ 
+            role: 'user', 
+            content: `The service ${selectedService} has an error rate of ${errorRateStr}% over the ${timeRange}. Write a PromQL and LogQL query plan to investigate the root cause.` 
+          }] 
+        })
+      });
+      if (!planRes.ok) throw new Error("Planner failed");
+      
+      const planReader = planRes.body?.getReader();
+      const planDecoder = new TextDecoder();
+      let planContent = '';
+      if (planReader) {
+        while (true) {
+          const { done, value } = await planReader.read();
+          if (done) break;
+          planContent += planDecoder.decode(value, { stream: true });
+        }
+      }
+      
+      const parsedPlan = JSON.parse(planContent);
+      setPlanData(parsedPlan);
+
+      // 2. Execute Query Plan
+      const execRes = await fetch('/api/observability/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queries: parsedPlan?.queries || [] })
+      });
+      if (!execRes.ok) throw new Error("Execution failed");
+      const execData = await execRes.json();
+      const rawResults = execData.results;
+
+      // 3. Generate Postmortem
+      const promptMessage = {
+        role: 'user',
+        content: `Generate a comprehensive incident postmortem report for ${selectedService}. The time range is ${timeRange}. 
+Context: The current error rate is ${errorRateStr}%.
+
+Here is the strict, raw JSON data returned from actually executing the investigation queries against Prometheus and Loki:
+${JSON.stringify(rawResults)}
+
+CRITICAL INSTRUCTION: You MUST NOT invent or hallucinate any probable causes, components, timelines, or fake incidents. Build the postmortem strictly and purely based on the facts present in the raw data above. Do not invent data. If the data is empty or generic, state exactly that. Only actual causes if known from the data should be mentioned.`
+      };
+
+      const res = await fetch('/api/ai/postmortem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [promptMessage] })
+      });
+      
+      if (!res.ok) throw new Error("API responded with " + res.status);
+      if (!res.body) throw new Error("No response body stream");
+      
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        assistantContent += decoder.decode(value, { stream: true });
+      }
+      
+      // Parse the completed JSON
+      const parsedData = JSON.parse(assistantContent);
+      setPostmortemData(parsedData);
+      
+      // Save it to the backend persistence layer
+      try {
+        await fetch('/api/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsedData)
+        });
+      } catch (err) {
+        console.error("Failed to save report to backend", err);
+      }
+      
+      // Automatically broadcast to all active webhooks
+      try {
+        await fetch('/api/alerts/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsedData)
+        });
+      } catch (err) {
+        console.error("Failed to broadcast report", err);
+      }
+      
+      // Scroll smoothly to the report
+      setTimeout(() => {
+        document.getElementById("postmortem-report")?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+
+    } catch (err: any) {
+      console.error(err);
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black tracking-[-.04em] text-slate-950 sm:text-4xl">Risk Analysis</h1>
+        <p className="mt-2 text-base font-semibold text-slate-500 max-w-2xl">
+          Instantly generate comprehensive incident postmortems using AI-driven observability data synthesis.
+        </p>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+        <div className="grid gap-12 xl:grid-cols-2">
+          
+          <section className="min-w-0">
+            <div className="mb-5 flex items-center gap-2 text-sm font-black uppercase tracking-[.15em] text-slate-500">
+              <Zap className="text-blue-600 w-4 h-4" /> Live Services
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+              {metrics.map(m => {
+                const isSelected = selectedService === m.serviceName;
+                return (
+                  <button 
+                    key={m.serviceName}
+                    onClick={() => setSelectedService(m.serviceName)}
+                    className={`flex flex-col rounded-2xl border p-5 text-left transition-all ${isSelected ? 'border-blue-600 bg-blue-50/30 ring-1 ring-blue-600 shadow-sm' : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'}`}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-base font-black tracking-tight ${isSelected ? 'text-blue-900' : 'text-slate-900'}`}>{m.serviceName}</span>
+                          {isSelected && <span className="h-2 w-2 rounded-full bg-blue-600"></span>}
+                        </div>
+                        <div className="text-xs font-black uppercase tracking-[.14em] text-slate-400 mt-1">Live Telemetry</div>
+                      </div>
+                      {m.errorRate > 15 ? (
+                        <span className="text-xs font-black tracking-[.16em] text-red-600">CRITICAL</span>
+                      ) : m.errorRate > 5 ? (
+                        <span className="text-xs font-black tracking-[.16em] text-amber-600">WARNING</span>
+                      ) : (
+                        <span className="text-xs font-black tracking-[.16em] text-emerald-600">HEALTHY</span>
+                      )}
+                    </div>
+                    <div className="mt-3 font-bold text-slate-800">Error Rate: {m.errorRate.toFixed(2)}%</div>
+                    <div className="mt-4 h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                      <div className={`h-full ${m.errorRate > 15 ? 'bg-red-500' : m.errorRate > 5 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{width: `${Math.min(m.errorRate, 100)}%`}}></div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="min-w-0 border-t border-slate-200 pt-8 xl:border-l xl:border-t-0 xl:pl-10 xl:pt-0">
+            <div className="mb-5 flex items-center gap-2 text-sm font-black uppercase tracking-[.15em] text-slate-500">
+              <FileSearch className="text-blue-600 w-4 h-4" /> Analysis Configuration
+            </div>
+            <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+              {['Last 30 min', 'Last 1 hour', 'Last 5 hours'].map(t => (
+                <button 
+                  key={t}
+                  onClick={() => setTimeRange(t)}
+                  className={`border-b pb-3 text-left text-sm ${timeRange === t ? 'border-blue-600 font-black text-blue-700' : 'border-slate-200 font-semibold text-slate-700'}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            <div className="text-sm text-slate-500 mb-6 mt-6">
+              AiSignal will generate a query plan, execute the queries against telemetry, and compile an investigation report.
+            </div>
+
+            {isPreviewLoading && (
+               <div className="mt-8 text-blue-600 text-sm font-bold flex items-center gap-2 border border-dashed border-blue-200 bg-blue-50/50 p-4 rounded-2xl">
+                 <Loader2 className="w-4 h-4 animate-spin" /> Fetching real-time preview diagnosis...
+               </div>
+            )}
+
+            {previewData && !isPreviewLoading && (
+              <div className="mt-8 border-t border-slate-200 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="mb-4 text-xs font-black uppercase tracking-[.18em] text-slate-400">Instant Diagnosis Preview</div>
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="mb-2 font-black text-slate-950">{previewData.title}</div>
+                  <div className="mb-4 text-xs font-bold text-blue-600">{previewData.confidence} confidence</div>
+                  <div className="space-y-3">
+                    {previewData.steps && previewData.steps.map((step: string, idx: number) => (
+                      <div key={idx}>
+                        <div className="text-sm font-semibold text-slate-700">{step}</div>
+                        {idx < previewData.steps.length - 1 && (
+                          <div className="ml-2 mt-2 text-slate-300">↓</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {error && (
+               <div className="mt-8 text-sm font-bold text-red-600 bg-red-50 p-4 rounded-xl border border-red-200">
+                 Error: {error.message || "Could not connect to AI."}
+               </div>
+            )}
+
+            {isLoading && (
+               <div className="text-blue-600 text-sm font-bold flex items-center gap-2 mt-8">
+                 <Loader2 className="w-4 h-4 animate-spin" /> Generating full incident report...
+               </div>
+            )}
+
+            <div className="mt-8 flex justify-end">
+              <button 
+                onClick={handleGenerate}
+                disabled={isLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-black text-white shadow-[0_16px_35px_rgba(15,23,42,.18)] transition hover:bg-blue-600 disabled:opacity-50"
+              >
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                Generate Postmortem
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {/* SEPARATE POSTMORTEM REPORT SECTION */}
+      {postmortemData && (
+        <div id="postmortem-report" className="mt-16 pt-16 border-t border-slate-200">
+          <PostmortemReport data={postmortemData} timeWindow={timeRange} queries={planData?.queries} />
+        </div>
+      )}
+    </div>
+  );
+}

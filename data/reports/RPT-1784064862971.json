@@ -1,0 +1,33 @@
+{
+  "id": "RPT-1784064862971",
+  "createdAt": "2026-07-14T21:34:22.971Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Warning",
+    "confidence": "75%",
+    "executiveSummary": "The frontend-web service is currently experiencing high CPU usage, with usage levels reaching 98.21%. However, there are no errors or exceptions detected in the logs, and the error rate remains at 0.00%.",
+    "rootCause": {
+      "title": "High CPU Usage",
+      "description": "The service frontend-web is undergoing significant CPU strain as indicated by both the real-time CPU usage and the 30-minute average metrics. This is likely impacting performance, although there are no accompanying error logs to suggest a specific application failure."
+    },
+    "evidenceChain": [
+      "Prometheus data shows CPU usage at 98.21% with an average of 94.22% over the last 30 minutes.",
+      "Loki logs show no exceptions or errors."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 24, 13:42",
+        "event": "Prometheus data indicates a 30-minute average CPU usage of 94.22%."
+      },
+      {
+        "time": "Oct 24, 13:42",
+        "event": "Memory usage averages 70.31% with no errors logged."
+      }
+    ],
+    "impact": "Potentially degraded performance due to high CPU usage but no direct errors affecting end-users.",
+    "recommendedActions": [
+      "Investigate the source of high CPU usage, potentially involving code profiling or checking for infinite loops or inefficient operations.",
+      "Consider deploying additional resources or load balancing to redistribute CPU usage across multiple instances if necessary."
+    ]
+  }
+}

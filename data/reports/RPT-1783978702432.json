@@ -1,0 +1,44 @@
+{
+  "id": "RPT-1783978702432",
+  "createdAt": "2026-07-13T21:38:22.432Z",
+  "data": {
+    "service": "payment-api",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "During the last 30 minutes, the payment-api service experienced a high error rate due to external API latency spikes causing connection pool exhaustion, resulting in significant service disruption.",
+    "rootCause": {
+      "title": "External API Latency Spike",
+      "description": "The payment-api experienced repeated GatewayExceptions due to external API latency spikes, causing the connection pool to exhaust. This led to failures in processing requests as the service could not handle the volume of connections needed."
+    },
+    "evidenceChain": [
+      "Analyzing Loki logs revealed repeated GatewayExceptions with messages stating 'External API latency spike detected. Connection pool exhausted.'",
+      "Prometheus metrics reported high memory usage (78.13%) and an error rate of 5.24%."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:42",
+        "event": "First detected GatewayException: External API latency spike detected."
+      },
+      {
+        "time": "Oct 12, 13:44",
+        "event": "Continual reports of 'connection pool exhausted' errors."
+      },
+      {
+        "time": "Oct 12, 13:48",
+        "event": "Culmination of error messages and system metrics indicating critical impact."
+      }
+    ],
+    "impact": "Users experienced disruptions in payment processing as requests to the payment-api failed due to exhausted connection pools.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Investigate and increase the connection pool size to better handle spikes in external API latencies.",
+      "Implement retry mechanisms with exponential backoff for external API calls to manage delays better.",
+      "Consider load testing external dependencies under high-stress scenarios to anticipate similar issues.",
+      "Based on similar incident KAN-6, consider evaluating whether restarting affected instances temporarily could provide relief during such outages."
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "RPT-1783979987912",
+  "createdAt": "2026-07-13T21:59:47.912Z",
+  "data": {
+    "service": "payment-api",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The payment-api service experienced a significant incident due to external API latency spikes and connection pool exhaustion, leading to an increase in error rates and impacting service availability.",
+    "rootCause": {
+      "title": "External API Latency and Connection Pool Exhaustion",
+      "description": "The incident was primarily caused by latency spikes in an external API that the payment-api service depends on. This resulted in the exhaustion of the connection pool within the payment-api service."
+    },
+    "evidenceChain": [
+      "Log entries indicate numerous GatewayException errors related to 'External API latency spike detected. Connection pool exhausted.'.",
+      "Metrics show system CPU usage was at 27.99% on average, ruling out CPU starvation as a primary cause.",
+      "Average memory usage was 209715200 bytes (approximately 200MB) and high memory usage alert at 78.13%, contributing to connection pool exhaustion."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:31",
+        "event": "Initial error detected: GatewayException in payment-api: External API latency spike detected. Connection pool exhausted."
+      },
+      {
+        "time": "Oct 12, 13:35",
+        "event": "Continued GatewayException errors related to connection pool exhaustion."
+      },
+      {
+        "time": "Oct 12, 13:42",
+        "event": "Persistent issues with external API latency spikes."
+      }
+    ],
+    "impact": "Users experienced delays and increased error rates when processing transactions through the payment-api, affecting overall service reliability.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Investigate the external API for performance issues and implement rate limiting or failover mechanisms.",
+      "Consider increasing the connection pool size or optimizing connection reuse.",
+      "Implement monitoring to detect and respond to external API performance degradation more rapidly.",
+      "As a temporary measure, consider restarting instances to clear orphaned connections, similar to the resolution in incident KAN-6."
+    ]
+  }
+}

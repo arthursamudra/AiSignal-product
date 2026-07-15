@@ -1,0 +1,9 @@
+[
+  {
+    "id": "SUB-1783880374073",
+    "name": "Critical Backend Alerts",
+    "type": "Slack",
+    "target": "https://example.com/webhook",
+    "status": "Active"
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "id": "RPT-1784006199702",
+  "createdAt": "2026-07-14T05:16:39.702Z",
+  "data": {
+    "service": "payment-api",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The payment-api service experienced multiple GatewayExceptions due to external API latency spikes, leading to connection pool exhaustion.",
+    "rootCause": {
+      "title": "External API latency spikes",
+      "description": "The payment-api service faced multiple GatewayExceptions caused by latency spikes from an external API. This resulted in the exhaustion of the connection pool, preventing new connections from being established."
+    },
+    "evidenceChain": [
+      "Multiple instances of GatewayExceptions logged in payment-api indicating external API latency issues.",
+      "Messages consistently reported that the connection pool was exhausted."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:42",
+        "event": "GatewayException in payment-api: External API latency spike detected. Connection pool exhausted."
+      },
+      {
+        "time": "Oct 12, 13:43",
+        "event": "GatewayException in payment-api: External API latency spike detected. Connection pool exhausted."
+      },
+      {
+        "time": "Oct 12, 13:44",
+        "event": "Multiple GatewayExceptions recorded due to connection pool exhaustion."
+      },
+      {
+        "time": "Oct 12, 13:45",
+        "event": "Continued GatewayExceptions as the external API latency issues persisted."
+      }
+    ],
+    "impact": "Users experienced delays or failures in payment processing due to repeated GatewayExceptions, as the payment-api couldn't handle new connections because of exhausted connection pools.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Review connection pool configurations and increase limits to handle spikes in external API latency.",
+      "Implement circuit breakers to temporarily halt requests to the external API during high latency periods.",
+      "Investigate and address the root causes of the API latency with the third-party provider.",
+      "Consider applying the resolution from KAN-6, such as restarting service components in case of orphaned connections."
+    ]
+  }
+}

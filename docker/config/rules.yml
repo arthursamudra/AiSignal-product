@@ -1,0 +1,32 @@
+groups:
+  - name: aisignal-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: >
+          sum by (service_name) (rate(http_request_duration_seconds_count{status=~"5.."}[1m])) 
+          / 
+          sum by (service_name) (rate(http_request_duration_seconds_count[1m])) > 0.060
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Error Rate Detected on {{ $labels.service_name }}"
+          description: "Service {{ $labels.service_name }} is experiencing an error rate above 5% for the last 30 seconds."
+
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percentage > 85
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU Usage Detected on {{ $labels.service_name }}"
+          description: "Service {{ $labels.service_name }} CPU usage is above 85% for 1 minute."
+
+      - alert: HighMemoryUsage
+        expr: system_memory_usage_bytes > 200000000
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory Usage Detected on {{ $labels.service_name }}"
+          description: "Service {{ $labels.service_name }} memory usage is critically high."

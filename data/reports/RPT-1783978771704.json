@@ -1,0 +1,39 @@
+{
+  "id": "RPT-1783978771704",
+  "createdAt": "2026-07-13T21:39:31.704Z",
+  "data": {
+    "service": "qa-login",
+    "severity": "Critical",
+    "confidence": "93%",
+    "executiveSummary": "The qa-login service faced a critical incident due to Redis connection timeouts impacting the session store retrieval process, resulting in a high error rate of 30.21%. Memory and CPU usage were within normal ranges, pointing towards the connection timeout as the primary issue.",
+    "rootCause": {
+      "title": "Redis Connection Timeouts",
+      "description": "The incident was caused by repeated connection timeouts when the qa-login service attempted to retrieve data from the Redis session store, consistently failing after 5000ms."
+    },
+    "evidenceChain": [
+      "Observation of repeated 'LoginException' logs indicating 'Session store retrieval failure' due to 'Redis connection timeout after 5000ms'.",
+      "Prometheus metrics showed the CPU and memory usage were within normal bounds, with CPU at 19.70% and memory at 44.86%, suggesting no resource exhaustion."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:42",
+        "event": "LoginException in qa-login: Session store retrieval failure. Redis connection timeout after 5000ms."
+      },
+      {
+        "time": "Oct 12, 13:41",
+        "event": "LoginException in qa-login: Session store retrieval failure. Redis connection timeout after 5000ms."
+      }
+    ],
+    "impact": "Users experienced failures when attempting to log in as the qa-login service could not successfully retrieve session information due to Redis connection issues, resulting in a high error rate.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Investigate and rectify the causes of Redis connection timeouts, specifically focusing on network issues or Redis resource saturation.",
+      "Implement monitoring for Redis connection health to preemptively detect and mitigate similar issues.",
+      "Consider restarting the Redis instance similar to the resolution of incident KAN-6 to clear potential orphaned connections."
+    ]
+  }
+}

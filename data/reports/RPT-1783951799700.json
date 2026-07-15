@@ -1,0 +1,38 @@
+{
+  "id": "RPT-1783951799700",
+  "createdAt": "2026-07-13T14:09:59.700Z",
+  "data": {
+    "service": "order-worker",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The order-worker service faced significant issues due to consumer group lag, leading to stalled partition rebalances. The issue resulted from a series of KafkaExceptions, indicating that the consumer group was falling behind, which might have impacted the processing of Kafka messages.",
+    "rootCause": {
+      "title": "Kafka Consumer Group Lag",
+      "description": "The root cause of the incident was a series of KafkaExceptions in the order-worker service, indicating that the Kafka consumer group was falling behind and the partition rebalance processes were stalled."
+    },
+    "evidenceChain": [
+      "Loki logs show repeated KafkaExceptions with the message 'Consumer group falling behind. Partition rebalance stalled processing.' in the order-worker service."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 11, 03:42",
+        "event": "First KafkaException detected in logs indicating rebalance stall."
+      },
+      {
+        "time": "Oct 11, 06:23",
+        "event": "Continued KafkaExceptions indicating persistent rebalance stalls."
+      }
+    ],
+    "impact": "Users experienced delays in order processing, as the order-worker service could not keep up with Kafka message consumption due to stalled partition rebalances.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Investigate and resolve the cause of the Kafka consumer group lag to prevent rebalance stalls.",
+      "Consider applying a similar resolution strategy as the historically resolved incident (KAN-6) which involved restarting instances to resolve connection issues, potentially applicable if resource contention is found.",
+      "Monitor Kafka consumer lag metrics and set alerts for early detection of lag and rebalance issues."
+    ]
+  }
+}

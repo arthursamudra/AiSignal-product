@@ -1,0 +1,44 @@
+{
+  "id": "RPT-1783978830355",
+  "createdAt": "2026-07-13T21:40:30.355Z",
+  "data": {
+    "service": "order-worker",
+    "severity": "Critical",
+    "confidence": "90%",
+    "executiveSummary": "The order-worker service experienced a significant issue due to Kafka exceptions related to consumer group processing stalling, leading to an increased error rate.",
+    "rootCause": {
+      "title": "Kafka Consumer Group Processing Stalled",
+      "description": "The incident was caused by a series of Kafka Exceptions indicating that the consumer group was falling behind due to stalled partition rebalancing. This resulted in delays and disruptions in the processing queues managed by the order-worker service."
+    },
+    "evidenceChain": [
+      "Detected multiple KafkaExceptions in the order-worker logs indicating issues with consumer group partition processing.",
+      "The error rate for order-worker increased to 8.36% during the incident window."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:11",
+        "event": "KafkaException in order-worker: Consumer group falling behind. Partition rebalance stalled processing."
+      },
+      {
+        "time": "Oct 12, 13:12",
+        "event": "Repeated KafkaExceptions indicating persistent consumer group issues."
+      },
+      {
+        "time": "Oct 12, 13:42",
+        "event": "Issue ongoing with consistent KafkaExceptions being logged."
+      }
+    ],
+    "impact": "Users experienced delays and possible timeout errors as the backlog in the Kafka consumer group increased, impacting the timely processing of orders.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Investigate the root cause of the Kafka consumer group partition rebalance stalling.",
+      "Ensure Kafka brokers are appropriately resourced and monitored for latency issues.",
+      "Consider automatic handling of stalled partitions to prevent similar incidents.",
+      "Reference resolution method from similar incident KAN-6 and restart relevant Kafka consumer instances to restore proper processing."
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "RPT-1784066191147",
+  "createdAt": "2026-07-14T21:56:31.147Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Warning",
+    "confidence": "85%",
+    "executiveSummary": "The frontend-web service experienced high CPU usage without any increase in error rates, indicating potential performance inefficiencies.",
+    "rootCause": {
+      "title": "High CPU Usage",
+      "description": "The service frontend-web showed consistent high CPU utilization of over 90%, but no error logs or high memory usage were detected to suggest a direct application malfunction or query issue, implying potential inefficiencies in current operations."
+    },
+    "evidenceChain": [
+      "Loki logs show 0 exceptions, indicating no error-related CPU spikes.",
+      "Prometheus metrics show average CPU usage at 94.99% over the last 30 minutes, indicating sustained high CPU utilization."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:42",
+        "event": "Start of observation period with CPU usage averaging at 94.99%."
+      }
+    ],
+    "impact": "No errors reported; user experience is primarily affected by potential latency due to high CPU consumption."
+  }
+}

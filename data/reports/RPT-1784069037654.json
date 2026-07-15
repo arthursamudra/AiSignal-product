@@ -1,0 +1,21 @@
+{
+  "id": "RPT-1784069037654",
+  "createdAt": "2026-07-14T22:43:57.654Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Critical",
+    "confidence": "89%",
+    "executiveSummary": "The frontend-web service experienced elevated CPU usage above 90% but maintained a 0.00% error rate. Latency and trace data could not be examined due to timeouts in data fetching.",
+    "rootCause": {
+      "title": "High CPU Usage",
+      "description": "The root cause of the incident is identified as high CPU usage, reaching 91.52%, which could lead to slower processing of requests."
+    },
+    "evidenceChain": [],
+    "timeline": [],
+    "impact": "Users may have experienced slower response times, although there were no errors recorded.",
+    "recommendedActions": [
+      "Investigate and resolve high CPU consumption to prevent potential latency issues.",
+      "Optimize code to handle processor-intensive tasks more efficiently."
+    ]
+  }
+}

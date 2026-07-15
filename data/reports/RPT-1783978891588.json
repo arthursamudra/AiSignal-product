@@ -1,0 +1,43 @@
+{
+  "id": "RPT-1783978891588",
+  "createdAt": "2026-07-13T21:41:31.588Z",
+  "data": {
+    "service": "payment-api",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The payment-api service experienced a series of GatewayExceptions due to an external API latency spike, which exhausted the connection pool, leading to increased error rates.",
+    "rootCause": {
+      "title": "External API Latency Spike",
+      "description": "The payment-api experienced exhaustion of connection pool due to latency spikes from an external API. This significantly impacted the service's ability to handle requests effectively."
+    },
+    "evidenceChain": [
+      "Step 1: Loki logs show numerous GatewayExceptions indicating 'External API latency spike detected. Connection pool exhausted.' across a 30-minute duration.",
+      "Step 2: Prometheus metrics show HTTP request duration indicates latency issues, with a large percentage of requests taking longer than expected."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:31",
+        "event": "GatewayException: External API latency spike detected. Connection pool exhausted."
+      },
+      {
+        "time": "Oct 12, 13:32",
+        "event": "Repeated GatewayException: External API latency spike detected."
+      },
+      {
+        "time": "Oct 12, 13:42",
+        "event": "Ongoing GatewayExceptions related to external API latency."
+      }
+    ],
+    "impact": "The incident caused an increase in payment-api error rates to 4.79%, affecting transaction processing and potentially leading to a degraded customer experience.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Evaluate and potentially augment connection pool settings to better handle sudden external API latencies.",
+      "Consider implementing retries or fallbacks for critical external API interactions.",
+      "As per the resolution of KAN-6, consider investigating and restarting any affected instances to resolve connection pooling issues."
+    ]
+  }
+}

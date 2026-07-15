@@ -1,0 +1,33 @@
+{
+  "id": "RPT-1784069469248",
+  "createdAt": "2026-07-14T22:51:09.248Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Critical",
+    "confidence": "100%",
+    "executiveSummary": "The frontend-web service experienced significant latency issues due to an N+1 query problem involving repeated database queries.",
+    "rootCause": {
+      "title": "N+1 Query Issue",
+      "description": "The distributed tracing data reveals an N+1 query problem causing excessive sequential database calls to the 'users_cart' table during the execution of GET /api/checkout requests."
+    },
+    "evidenceChain": [
+      "Multiple sequential SELECT * FROM users_cart queries were executed in each trace.",
+      "High and sustained p95 latency of 4500ms for the affected requests."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 6, 14:15",
+        "event": "Incident started with traces showing high latency."
+      },
+      {
+        "time": "Oct 6, 14:25",
+        "event": "Continued high latency confirmed by repetitive database query patterns."
+      }
+    ],
+    "impact": "Users experienced delayed responses during checkout operations, leading to potential disruptions in user service and satisfaction.",
+    "recommendedActions": [
+      "Implement eager loading for related data in 'users_cart' to resolve the N+1 query issue and reduce latency.",
+      "Monitor CPU usage and optimize resource allocation to prevent future performance bottlenecks."
+    ]
+  }
+}

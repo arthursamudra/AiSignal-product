@@ -1,0 +1,94 @@
+Created At: 2026-07-11T12:08:56Z
+Completed At: 2026-07-11T12:09:06Z
+File Path: `file:///Users/rushikesh/aisignal-product/src/app/console/layout.tsx`
+Total Lines: 86
+Total Bytes: 3811
+Showing lines 1 to 86
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: import Link from "next/link";
+2: 
+3: export default function ConsoleLayout({
+4:   children,
+5: }: {
+6:   children: React.ReactNode;
+7: }) {
+8:   return (
+9:     <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-5 md:py-12 pt-24 mt-16">
+10:       <div className="mx-auto max-w-6xl">
+11:         <div className="mb-8 flex min-w-0 flex-col justify-between gap-4 md:flex-row md:items-end">
+12:           <div>
+13:             <div className="mb-3 text-sm font-black uppercase tracking-[.22em] text-blue-600">
+14:               Active Environment
+15:             </div>
+16:             <h2 className="text-xl font-black tracking-tight sm:text-3xl md:text-[2.75rem] lg:text-5xl text-slate-950">
+17:               Service intelligence console.
+18:             </h2>
+19:           </div>
+20:         </div>
+21: 
+22:         <div className="w-full min-w-0 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,.08)]">
+23:           <div className="flex flex-col gap-2 border-b border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+24:             <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 sm:text-sm">
+25:               <span className="h-3 w-3 rounded-full bg-red-500"></span>
+26:               <span className="h-3 w-3 rounded-full bg-amber-400"></span>
+27:               <span className="h-3 w-3 rounded-full bg-emerald-500"></span>
+28:               <span className="ml-3 font-bold text-slate-950">
+29:                 AiSignal Console · Production Preview
+30:               </span>
+31:             </div>
+32:             <div className="text-xs font-black uppercase tracking-[.16em] text-emerald-700">
+33:               OpenTelemetry connected
+34:             </div>
+35:           </div>
+36: 
+37:           <div className="grid min-h-[560px] min-w-0 grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)]">
+38:             <aside className="border-b border-slate-200 bg-slate-950 p-6 text-white xl:border-b-0 xl:border-r xl:border-slate-200">
+39:               <div className="mb-8 flex items-center gap-3">
+40:                 <div className="relative grid h-11 w-11 place-items-center overflow-hidden rounded-2xl bg-blue-600 font-black shadow-[0_18px_40px_rgba(15,98,254,.35)]">
+41:                   <span className="relative z-10">A∿</span>
+42:                 </div>
+43:                 <div>
+44:                   <div className="font-black">AiSignal</div>
+45:                   <div className="text-xs text-blue-300">
+46:                     Operational Intelligence
+47:                   </div>
+48:                 </div>
+49:               </div>
+50:               <div className="space-y-1 text-sm flex flex-col">
+51:                 <Link
+52:                   href="/console/incidents"
+53:                   className="border-l-2 px-4 py-3 border-transparent text-white/58 hover:text-white cursor-pointer"
+54:                 >
+55:                   Active Incidents
+56:                 </Link>
+57:                 <Link
+58:                   href="/console/analysis"
+59:                   className="border-l-2 px-4 py-3 border-transparent text-white/58 hover:text-white cursor-pointer"
+60:                 >
+61:                   Run Analysis
+62:                 </Link>
+63:                 <Link
+64:                   href="/console/ask"
+65:                   className="border-l-2 px-4 py-3 border-transparent text-white/58 hover:text-white cursor-pointer"
+66:                 >
+67:                   Ask Telemetry
+68:                 </Link>
+69:                 <Link
+70:                   href="/console/historical"
+71:                   className="border-l-2 px-4 py-3 border-transparent text-white/58 hover:text-white cursor-pointer"
+72:                 >
+73:                   Historical Intelligence
+74:                 </Link>
+75:               </div>
+76:             </aside>
+77:             <main className="min-w-0 bg-white p-5 text-slate-950 sm:p-6 md:p-6">
+78:               {children}
+79:             </main>
+80:           </div>
+81:         </div>
+82:       </div>
+83:     </div>
+84:   );
+85: }
+86: 
+The above content shows the entire, complete file contents of the requested file.

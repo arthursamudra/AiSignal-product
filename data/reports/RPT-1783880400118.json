@@ -1,0 +1,47 @@
+{
+  "id": "RPT-1783880400118",
+  "createdAt": "2026-07-12T18:20:00.118Z",
+  "data": {
+    "service": "qa-login",
+    "severity": "Critical",
+    "confidence": "95%",
+    "executiveSummary": "The qa-login service experienced a significant increase in error rates, reaching 34.01%. This was primarily due to repeated Redis connection timeouts, affecting user session retrieval.",
+    "rootCause": {
+      "title": "Redis Connection Timeout",
+      "description": "The qa-login service faced repeated timeouts when trying to retrieve user session data from the Redis database. The connection timed out after 5000ms, leading to a series of 'LoginException' errors."
+    },
+    "evidenceChain": [
+      "Increased error rate noted in Prometheus metric data, reaching 34.01 %",
+      "Loki logs showed frequent 'LoginException' errors due to Redis connection timeouts"
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:29",
+        "event": "First occurrence of 'LoginException' due to Redis connection timeout"
+      },
+      {
+        "time": "Oct 12, 13:30",
+        "event": "Continued 'LoginException' errors due to Redis connection timeout"
+      },
+      {
+        "time": "Oct 12, 13:30",
+        "event": "Error rate spikes to 34.01% as per Prometheus data"
+      },
+      {
+        "time": "Oct 12, 13:42",
+        "event": "Latest recorded 'LoginException' error in logs"
+      }
+    ],
+    "impact": "Users were unable to log in as their session data could not be retrieved, significantly impacting user authentication processes.",
+    "similarIncident": {
+      "id": "KAN-6",
+      "title": "Redis Connection Timeout Spikes",
+      "resolution": "Resolution: Restarted redis-primary-3 instance due to orphaned connections."
+    },
+    "recommendedActions": [
+      "Investigate and resolve the root cause of the Redis connection timeouts to prevent recurrence.",
+      "Consider restarting the Redis instance as done in incident KAN-6 to resolve any potentially orphaned connections.",
+      "Implement monitoring and alerts for Redis connection health to proactively address any degradations."
+    ]
+  }
+}
