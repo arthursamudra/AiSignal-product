@@ -5,8 +5,9 @@ import axios from 'axios';
 const openai = new OpenAI();
 export const maxDuration = 30;
 
-const LOKI_URL = 'http://127.0.0.1:3100';
-const PROMETHEUS_URL = 'http://127.0.0.1:9090';
+const LOKI_URL = process.env.LOKI_URL || 'http://127.0.0.1:3100';
+const PROMETHEUS_URL = process.env.PROMETHEUS_URL || 'http://127.0.0.1:9090';
+const TEMPO_URL = process.env.TEMPO_URL || 'http://127.0.0.1:3200';
 
 export async function POST(req: Request) {
   try {
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
     // 3. Fetch recent traces from Tempo
     let rawTraceData = [];
     try {
-      const res = await axios.get(`http://127.0.0.1:3200/api/search`, {
+      const res = await axios.get(`${TEMPO_URL}/api/search`, {
         params: { tags: `service.name=${service}` },
         timeout: 3000,
       });
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
       if (traces.length > 0) {
         try {
           const traceId = traces[0].traceID;
-          const fullTraceRes = await axios.get(`http://127.0.0.1:3200/api/traces/${traceId}`);
+          const fullTraceRes = await axios.get(`${TEMPO_URL}/api/traces/${traceId}`);
           traces[0].fullSpans = fullTraceRes.data;
         } catch (err) {
           console.error("Failed to fetch full trace", err);

@@ -1,0 +1,29 @@
+{
+  "id": "RPT-1784109631406",
+  "createdAt": "2026-07-15T10:00:31.406Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Critical",
+    "confidence": "90%",
+    "executiveSummary": "The frontend-web service is currently experiencing extremely high CPU usage while maintaining normal error rates, which could lead to degraded performance or outages if not addressed quickly.",
+    "rootCause": {
+      "title": "High CPU Usage",
+      "description": "The system CPU usage has averaged 94.97% over the last 30 minutes, indicating a significant overload. This is likely the root cause of potential performance degradation."
+    },
+    "evidenceChain": [
+      "Step 1: Checked Prometheus metrics for system CPU usage showing an average of 94.97% over the past 30 minutes.",
+      "Step 2: Memory usage is at 70.31%, which is stable and not contributing to the current issue."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 12, 13:42",
+        "event": "Prometheus metric query executed indicating persistent high CPU usage."
+      }
+    ],
+    "impact": "Users may experience performance issues due to CPU resource exhaustion, although no increase in error rate has been observed.",
+    "recommendedActions": [
+      "Investigate and optimize the code paths or workloads causing the high CPU usage.",
+      "Consider scaling up resources or load distribution approaches to reduce CPU load."
+    ]
+  }
+}

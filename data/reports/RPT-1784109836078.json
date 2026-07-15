@@ -1,0 +1,32 @@
+{
+  "id": "RPT-1784109836078",
+  "createdAt": "2026-07-15T10:03:56.078Z",
+  "data": {
+    "service": "frontend-web",
+    "severity": "Critical",
+    "confidence": "100%",
+    "executiveSummary": "The frontend-web service experienced significant latency degradation in the last 30 minutes due to an N+1 query issue identified in the database operations, particularly with the 'SELECT * FROM users_cart' query.",
+    "rootCause": {
+      "title": "N+1 Query Issue",
+      "description": "An N+1 query issue was identified where multiple sequential 'SELECT * FROM users_cart' database queries were executed within single request traces. This pattern significantly increased the latency of requests."
+    },
+    "evidenceChain": [
+      "Multiple sequential 'SELECT * FROM users_cart' database queries appearing in single request traces.",
+      "High p95 latency detected with GET /api/checkout, consistent with N+1 query problem."
+    ],
+    "timeline": [
+      {
+        "time": "Oct 18, 17:34",
+        "event": "Trace LVRQpiMj7zdppK7P8koxcQ== shows multiple sequential 'SELECT * FROM users_cart' queries."
+      },
+      {
+        "time": "Oct 18, 17:38",
+        "event": "High CPU usage at 92.07%, but no direct correlation with request latency."
+      }
+    ],
+    "impact": "Users experienced significant response time delays when accessing the checkout functionality of the frontend-web service.",
+    "recommendedActions": [
+      "Implement eager loading to address the N+1 query issue for 'users_cart' relations to reduce the number of database queries and improve performance."
+    ]
+  }
+}

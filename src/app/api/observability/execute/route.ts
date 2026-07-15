@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const PROMETHEUS_URL = 'http://127.0.0.1:9090';
-const LOKI_URL = 'http://127.0.0.1:3100';
+const PROMETHEUS_URL = process.env.PROMETHEUS_URL || 'http://127.0.0.1:9090';
+const LOKI_URL = process.env.LOKI_URL || 'http://127.0.0.1:3100';
+const TEMPO_URL = process.env.TEMPO_URL || 'http://127.0.0.1:3200';
 
 type QueryPayload = {
   source: string;
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
           return { query: q.code, source: 'Loki', data: res.data.data };
         }
         else if (q.source.toLowerCase().includes('tempo')) {
-          const res = await axios.get(`http://127.0.0.1:3200/api/search`, {
+          const res = await axios.get(`${TEMPO_URL}/api/search`, {
             params: { tags: `service.name=${q.code}` },
             timeout: 5000,
           });
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
           if (traces.length > 0) {
             try {
               const traceId = traces[0].traceID;
-              const fullTraceRes = await axios.get(`http://127.0.0.1:3200/api/traces/${traceId}`);
+              const fullTraceRes = await axios.get(`${TEMPO_URL}/api/traces/${traceId}`);
               // The full trace contains all spans
               traces[0].fullSpans = fullTraceRes.data;
             } catch (err) {

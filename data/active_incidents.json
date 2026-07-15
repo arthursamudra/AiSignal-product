@@ -1,28 +1,37 @@
 {
-  "HighMemoryUsage-payment-api": {
-    "id": "EVT-1784092168327-afgus",
-    "timestamp": "2026-07-15T05:09:28.327Z",
-    "source": "Prometheus Alertmanager",
-    "alertname": "HighMemoryUsage",
-    "service": "payment-api",
-    "severity": "warning",
-    "status": "firing"
-  },
   "HighCPUUsage-frontend-web": {
-    "id": "EVT-1784092227416-8i2bz",
-    "timestamp": "2026-07-15T05:10:27.416Z",
+    "id": "EVT-1784124099236-talcj",
+    "timestamp": "2026-07-15T14:01:39.236Z",
     "source": "Prometheus Alertmanager",
     "alertname": "HighCPUUsage",
     "service": "frontend-web",
     "severity": "warning",
     "status": "firing"
   },
+  "HighMemoryUsage-payment-api": {
+    "id": "EVT-1784124099787-tvepu",
+    "timestamp": "2026-07-15T14:01:39.787Z",
+    "source": "Prometheus Alertmanager",
+    "alertname": "HighMemoryUsage",
+    "service": "payment-api",
+    "severity": "warning",
+    "status": "firing"
+  },
   "HighErrorRate-qa-login": {
-    "id": "EVT-1784092949934-ua29x",
-    "timestamp": "2026-07-15T05:22:29.934Z",
+    "id": "EVT-1784125299969-ir2ma",
+    "timestamp": "2026-07-15T14:21:39.969Z",
     "source": "Prometheus Alertmanager",
     "alertname": "HighErrorRate",
     "service": "qa-login",
+    "severity": "critical",
+    "status": "firing"
+  },
+  "HighErrorRate-order-worker": {
+    "id": "EVT-1784125299969-qeanu",
+    "timestamp": "2026-07-15T14:21:39.969Z",
+    "source": "Prometheus Alertmanager",
+    "alertname": "HighErrorRate",
+    "service": "order-worker",
     "severity": "critical",
     "status": "firing"
   }

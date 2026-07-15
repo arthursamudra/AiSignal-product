@@ -117,3 +117,19 @@ services:
       - LOKI_URL=http://loki:3100/loki/api/v1/push
     depends_on:
       - otel-collector
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PROMETHEUS_URL=http://prometheus:9090
+      - LOKI_URL=http://loki:3100
+      - TEMPO_URL=http://tempo:3200
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
