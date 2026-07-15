@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const LOKI_URL = 'http://127.0.0.1:3100';
+const LOKI_URL = process.env.LOKI_URL || 'http://127.0.0.1:3100';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

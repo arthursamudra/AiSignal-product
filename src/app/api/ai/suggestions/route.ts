@@ -3,8 +3,8 @@ import axios from 'axios';
 import { NextResponse } from 'next/server';
 
 const openai = new OpenAI();
-const PROMETHEUS_URL = 'http://127.0.0.1:9090';
-const LOKI_URL = 'http://127.0.0.1:3100';
+const PROMETHEUS_URL = process.env.PROMETHEUS_URL || 'http://127.0.0.1:9090';
+const LOKI_URL = process.env.LOKI_URL || 'http://127.0.0.1:3100';
 
 export async function GET(req: Request) {
   try {

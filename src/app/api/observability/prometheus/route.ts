@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const PROMETHEUS_URL = 'http://127.0.0.1:9090';
+const PROMETHEUS_URL = process.env.PROMETHEUS_URL || 'http://127.0.0.1:9090';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
