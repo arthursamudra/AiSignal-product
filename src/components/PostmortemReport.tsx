@@ -276,7 +276,7 @@ export default function PostmortemReport({ data, timeWindow = "Last 5 hours", qu
             <div className="mt-6 border border-slate-200 rounded-2xl bg-white p-6 shadow-sm overflow-hidden">
               <div className="mb-6 flex items-center justify-between">
                 <div className="text-sm font-black uppercase tracking-[.15em] text-slate-700">Raw Trace Spans</div>
-                <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">{tempoMetric.query}</div>
+                <div className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">{`{service.name="${tempoMetric.query}"}`}</div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-600">
@@ -342,10 +342,10 @@ export default function PostmortemReport({ data, timeWindow = "Last 5 hours", qu
                 </div>
                 <div className="relative group/code">
                   <pre className="whitespace-pre-wrap break-all rounded-xl bg-slate-950 p-4 pr-12 text-xs font-medium text-emerald-400">
-                    <code>{q.code}</code>
+                    <code>{q.source.toLowerCase().includes('tempo') ? `{service.name="${q.code}"}` : q.code}</code>
                   </pre>
                   <button 
-                    onClick={() => navigator.clipboard.writeText(q.code)}
+                    onClick={() => navigator.clipboard.writeText(q.source.toLowerCase().includes('tempo') ? `{service.name="${q.code}"}` : q.code)}
                     className="absolute right-3 top-3 rounded-md bg-slate-800 p-2 text-slate-300 opacity-0 transition-opacity hover:bg-slate-700 hover:text-white group-hover/code:opacity-100"
                     title="Copy to clipboard"
                   >
