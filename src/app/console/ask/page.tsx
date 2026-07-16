@@ -304,7 +304,7 @@ IMPORTANT: If the raw data contains a large time-series matrix array (e.g. many 
                     <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] text-slate-500">
                       <FileSearch className="text-blue-600 w-3 h-3" /> {q.source} · {q.description}
                     </div>
-                    <pre className="whitespace-pre-wrap break-all rounded-xl bg-slate-950 p-4 text-xs font-medium text-emerald-400"><code>{q.code}</code></pre>
+                    <pre className="whitespace-pre-wrap break-all rounded-xl bg-slate-950 p-4 text-xs font-medium text-emerald-400"><code>{q.source.toLowerCase().includes('tempo') ? `{service.name="${q.code}"}` : q.code}</code></pre>
                   </div>
                 ))}
               </div>
