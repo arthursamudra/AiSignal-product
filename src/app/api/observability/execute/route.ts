@@ -41,16 +41,16 @@ export async function POST(request: Request) {
           });
           let traces = res.data.traces || [];
           
-          // Fetch full span hierarchy for the first trace so AI can diagnose N+1
+          // Fetch full span hierarchy for up to 10 traces so AI can diagnose N+1 and UI can render span details
           if (traces.length > 0) {
-            try {
-              const traceId = traces[0].traceID;
-              const fullTraceRes = await axios.get(`${TEMPO_URL}/api/traces/${traceId}`);
-              // The full trace contains all spans
-              traces[0].fullSpans = fullTraceRes.data;
-            } catch (err) {
-              console.error("Failed to fetch full trace", err);
-            }
+            await Promise.all(traces.slice(0, 10).map(async (trace: any) => {
+              try {
+                const fullTraceRes = await axios.get(`${TEMPO_URL}/api/traces/${trace.traceID}`);
+                trace.fullSpans = fullTraceRes.data;
+              } catch (err) {
+                console.error(`Failed to fetch full trace ${trace.traceID}`, err);
+              }
+            }));
           }
           
           return { query: q.code, source: 'Tempo', data: traces };

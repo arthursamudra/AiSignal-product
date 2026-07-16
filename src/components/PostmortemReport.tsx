@@ -22,7 +22,7 @@ export type PostmortemData = {
   recommendedActions: string[];
 };
 
-export default function PostmortemReport({ data, timeWindow = "Last 5 hours", queries, rawMetrics }: { data: PostmortemData, timeWindow?: string, queries?: { source: string; description: string; code: string; }[], rawMetrics?: any }) {
+export default function PostmortemReport({ data, timeWindow = "Last 5 hours", queries, rawMetrics, userQuery }: { data: PostmortemData, timeWindow?: string, queries?: { source: string; description: string; code: string; }[], rawMetrics?: any, userQuery?: string }) {
   const [showConfluenceModal, setShowConfluenceModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [confluenceConfig, setConfluenceConfig] = useState({ domain: 'https://', email: '', apiToken: '', spaceKey: 'ENG' });
@@ -267,7 +267,7 @@ export default function PostmortemReport({ data, timeWindow = "Last 5 hours", qu
         })()
       )}
       
-      {rawMetrics && rawMetrics.length > 0 && (
+      {rawMetrics && rawMetrics.length > 0 && userQuery && (userQuery.toLowerCase().includes('trace') || userQuery.toLowerCase().includes('span')) && (
         (() => {
           const tempoMetric = rawMetrics.find((m: any) => m.source === 'Tempo' && m.data && m.data.length > 0);
           if (!tempoMetric) return null;
@@ -288,13 +288,38 @@ export default function PostmortemReport({ data, timeWindow = "Last 5 hours", qu
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
-                    {tempoMetric.data.map((trace: any, i: number) => (
-                      <tr key={i} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 pr-4 font-mono text-xs text-blue-600">{trace.traceID || '-'}</td>
-                        <td className="py-3 pr-4">{trace.startTimeUnixNano ? new Date(parseInt(trace.startTimeUnixNano) / 1000000).toLocaleTimeString() : '-'}</td>
-                        <td className="py-3 pr-4">{trace.durationMs || '-'} ms</td>
-                      </tr>
-                    ))}
+                    {tempoMetric.data.map((trace: any, i: number) => {
+                      const allSpans = trace.fullSpans?.batches?.flatMap((b: any) => b.scopeSpans?.flatMap((ss: any) => ss.spans || []) || []) || [];
+                      return (
+                        <React.Fragment key={i}>
+                          <tr className="hover:bg-slate-50 transition-colors">
+                            <td className="py-3 pr-4 font-mono text-xs text-blue-600">{trace.traceID || '-'}</td>
+                            <td className="py-3 pr-4">{trace.startTimeUnixNano ? new Date(parseInt(trace.startTimeUnixNano) / 1000000).toLocaleTimeString() : '-'}</td>
+                            <td className="py-3 pr-4">{trace.durationMs || '-'} ms</td>
+                          </tr>
+                          {allSpans.length > 0 && (
+                            <tr>
+                              <td colSpan={3} className="px-4 pb-4 bg-slate-50 border-b border-slate-200">
+                                <details className="group">
+                                  <summary className="text-xs font-bold text-slate-500 cursor-pointer pt-2 pb-2 hover:text-blue-600">View {allSpans.length} Spans</summary>
+                                  <div className="mt-2 pl-4 border-l-2 border-slate-200 space-y-1">
+                                    {allSpans.map((span: any, j: number) => {
+                                      const duration = span.endTimeUnixNano && span.startTimeUnixNano ? ((parseInt(span.endTimeUnixNano) - parseInt(span.startTimeUnixNano)) / 1000000).toFixed(2) : '-';
+                                      return (
+                                        <div key={j} className="flex justify-between text-xs py-1 text-slate-600">
+                                          <span className="font-semibold text-slate-800">{span.name || 'unknown span'}</span>
+                                          <span className="font-mono text-slate-500">{duration} ms</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </details>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

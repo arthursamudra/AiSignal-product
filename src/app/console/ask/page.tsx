@@ -322,7 +322,7 @@ IMPORTANT: If the raw data contains a large time-series matrix array (e.g. many 
 
       {reportData && (
         <div id="ask-report" className="mt-16 pt-16 border-t border-slate-200">
-          <PostmortemReport data={reportData} timeWindow={planData?.window || "Specified timeframe"} queries={planData?.queries} rawMetrics={rawMetrics} />
+          <PostmortemReport data={reportData} timeWindow={planData?.window || "Specified timeframe"} queries={planData?.queries} rawMetrics={rawMetrics} userQuery={query} />
         </div>
       )}
     </div>
